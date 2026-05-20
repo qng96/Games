@@ -137,7 +137,7 @@ nowe = false
 
 game:GetService("StarterGui"):SetCore("SendNotification", { 
 	Title = "FLY Roblox";
-	Text = "Tiktok.com/@HLuuVNGaming ";
+	Text = "Tiktok.com/@HLuuVNGaming";
 	Icon = "rbxthumb://type=Asset&id=135778317586014&w=150&h=150"})
 Duration = 5;
 
