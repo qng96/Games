@@ -66,7 +66,7 @@ info.RichText = true
 info.TextXAlignment = Enum.TextXAlignment.Left
 info.TextYAlignment = Enum.TextYAlignment.Top
 
-local box = Instance.new("...", frame)
+local box = Instance.new("TextBox", frame)
 box.Size = UDim2.new(0.55,0,0,22)
 box.Position = UDim2.new(0.05,0,1,-26)
 box.PlaceholderText = "..."
