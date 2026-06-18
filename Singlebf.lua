@@ -51,7 +51,7 @@ stroke.Thickness = 2
 
 local title = Instance.new("TextLabel", frame)
 title.Size = UDim2.new(1,0,0,24)
-title.Text = "Roblox"
+title.Text = "Blox Fruit"
 title.BackgroundTransparency = 1
 title.Font = Enum.Font.GothamBold
 title.TextScaled = true
