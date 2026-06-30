@@ -1,4 +1,4 @@
-loadstring(game:HttpGet(("https://raw.githubusercontent.com/qng96/Main/refs/heads/main/mainr.lua")))()
+loadstring(game:HttpGet(("https://raw.githubusercontent.com/qng96/Main/refs/heads/main/mainr.lua"))()
 
        local Window = MakeWindow({
          Hub = {
