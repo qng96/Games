@@ -950,7 +950,7 @@ local SetProps, SetChildren, InsertTheme, Create do
 		end
 	end
 	
-	pcall(Save, "redz library V5.json")
+	pcall(Save, "gravity V1.json")
 end
 
 local Funcs = {} do
@@ -1092,7 +1092,7 @@ local GetFlag, SetFlag, CheckFlag do
 end
 
 local ScreenGui = Create("ScreenGui", CoreGui, {
-	Name = "redz Library V5",
+	Name = "Gravity Hub V5",
 }, {
 	Create("UIScale", {
 		Scale = UIScale,
@@ -1579,13 +1579,13 @@ function redzlib:MakeWindow(Configs)
 	local Window, FirstTab = {}, false
 	function Window:CloseBtn()
 		local Dialog = Window:Dialog({
-			Title = "Close",
-			Text = "You Want Close Ui?",
+			Title = "Đóng",
+			Text = "Bạn muốn đóng script này ?",
 			Options = {
-				{"Confirm", function()
+				{"Xác nhận", function()
 					ScreenGui:Destroy()
 				end},
-				{"Cancel"}
+				{"Hủy bỏ"}
 			}
 		})
 	end
