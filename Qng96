@@ -1,0 +1,368 @@
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local Workspace = game:GetService("Workspace")
+
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+local Camera = Workspace.CurrentCamera
+
+
+local FlyActive = false
+local FlySpeedVal = 3
+local FlyConnection = nil
+local bodyVelocity = nil
+local bodyGyro = nil
+
+local isGoingUp = false
+local isGoingDown = false
+
+local RunSpeedVal = 7
+local SpeedActive = false
+
+
+local function startFly()
+	local char = LocalPlayer.Character
+	if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+	local hrp = char.HumanoidRootPart
+	local humanoid = char:FindFirstChildOfClass("Humanoid")
+
+	if humanoid then
+		humanoid.PlatformStand = true
+	end
+
+	bodyVelocity = Instance.new("BodyVelocity")
+	bodyVelocity.MaxForce = Vector3.new(1e9, 1e9, 1e9)
+	bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+	bodyVelocity.Parent = hrp
+
+	bodyGyro = Instance.new("BodyGyro")
+	bodyGyro.MaxTorque = Vector3.new(1e9, 1e9, 1e9)
+	bodyGyro.CFrame = hrp.CFrame
+	bodyGyro.Parent = hrp
+
+	FlyConnection = RunService.RenderStepped:Connect(function()
+		if not FlyActive or not char or not hrp then return end
+
+		local moveDir = Vector3.new(0, 0, 0)
+		local camCF = Camera.CFrame
+
+		
+		if UserInputService:IsKeyDown(Enum.KeyCode.W) then moveDir = moveDir + camCF.LookVector end
+		if UserInputService:IsKeyDown(Enum.KeyCode.S) then moveDir = moveDir - camCF.LookVector end
+		if UserInputService:IsKeyDown(Enum.KeyCode.A) then moveDir = moveDir - camCF.RightVector end
+		if UserInputService:IsKeyDown(Enum.KeyCode.D) then moveDir = moveDir + camCF.RightVector end
+
+		
+		if isGoingUp or UserInputService:IsKeyDown(Enum.KeyCode.Space) then 
+			moveDir = moveDir + Vector3.new(0, 1, 0) 
+		end
+		if isGoingDown or UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then 
+			moveDir = moveDir - Vector3.new(0, 1, 0) 
+		end
+
+		if moveDir.Magnitude > 0 then
+			moveDir = moveDir.Unit
+		end
+
+		bodyVelocity.Velocity = moveDir * (FlySpeedVal * 15)
+		bodyGyro.CFrame = camCF
+	end)
+end
+
+
+local function stopFly()
+	if FlyConnection then
+		FlyConnection:Disconnect()
+		FlyConnection = nil
+	end
+	if bodyVelocity then bodyVelocity:Destroy() bodyVelocity = nil end
+	if bodyGyro then bodyGyro:Destroy() bodyGyro = nil end
+
+	local char = LocalPlayer.Character
+	if char then
+		local humanoid = char:FindFirstChildOfClass("Humanoid")
+		if humanoid then
+			humanoid.PlatformStand = false
+		end
+	end
+end
+
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "QNG96_UI"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = PlayerGui
+
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Size = UDim2.new(0, 310, 0, 210)
+MainFrame.Position = UDim2.new(0.5, -155, 0.4, -105)
+MainFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 40)
+MainFrame.BorderSizePixel = 0
+MainFrame.Active = true
+MainFrame.Draggable = true
+MainFrame.Parent = ScreenGui
+
+Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 8)
+
+local UIStroke = Instance.new("UIStroke", MainFrame)
+UIStroke.Color = Color3.fromRGB(60, 60, 65)
+UIStroke.Thickness = 2
+
+
+local TabHeader = Instance.new("Frame", MainFrame)
+TabHeader.Size = UDim2.new(1, 0, 0, 35)
+TabHeader.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+TabHeader.BorderSizePixel = 0
+
+Instance.new("UICorner", TabHeader).CornerRadius = UDim.new(0, 8)
+
+local UIListLayoutHeader = Instance.new("UIListLayout", TabHeader)
+UIListLayoutHeader.FillDirection = Enum.FillDirection.Horizontal
+UIListLayoutHeader.SortOrder = Enum.SortOrder.LayoutOrder
+
+local function createTabButton(name, order)
+	local btn = Instance.new("TextButton")
+	btn.Name = name .. "Tab"
+	btn.Size = UDim2.new(0.333, 0, 1, 0)
+	btn.BackgroundTransparency = 1
+	btn.Text = name
+	btn.TextColor3 = Color3.fromRGB(160, 160, 160)
+	btn.Font = Enum.Font.SourceSansBold
+	btn.TextSize = 16
+	btn.LayoutOrder = order
+	btn.Parent = TabHeader
+	return btn
+end
+
+local flyTabBtn = createTabButton("FLY", 1)
+local speedTabBtn = createTabButton("SPEED", 2)
+local infoTabBtn = createTabButton("INFO", 3)
+
+local ContentContainer = Instance.new("Frame", MainFrame)
+ContentContainer.Size = UDim2.new(1, 0, 1, -35)
+ContentContainer.Position = UDim2.new(0, 0, 0, 35)
+ContentContainer.BackgroundTransparency = 1
+
+
+local FlyFrame = Instance.new("Frame", ContentContainer)
+FlyFrame.Size = UDim2.new(1, 0, 1, 0)
+FlyFrame.BackgroundTransparency = 1
+
+local FlySpeedLabel = Instance.new("TextLabel", FlyFrame)
+FlySpeedLabel.Size = UDim2.new(0, 150, 0, 30)
+FlySpeedLabel.Position = UDim2.new(0.05, 0, 0.1, 0)
+FlySpeedLabel.Text = "Flight speed : " .. FlySpeedVal
+FlySpeedLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+FlySpeedLabel.Font = Enum.Font.SourceSansBold
+FlySpeedLabel.TextSize = 16
+FlySpeedLabel.TextXAlignment = Enum.TextXAlignment.Left
+FlySpeedLabel.BackgroundTransparency = 1
+
+
+local FlyMinus = Instance.new("TextButton", FlyFrame)
+FlyMinus.Size = UDim2.new(0, 32, 0, 30)
+FlyMinus.Position = UDim2.new(0.65, 0, 0.1, 0)
+FlyMinus.Text = "−"
+FlyMinus.TextColor3 = Color3.fromRGB(255, 255, 255)
+FlyMinus.BackgroundColor3 = Color3.fromRGB(60, 60, 65)
+FlyMinus.Font = Enum.Font.SourceSansBold
+FlyMinus.TextSize = 18
+Instance.new("UICorner", FlyMinus).CornerRadius = UDim.new(0, 4)
+
+
+local FlyPlus = Instance.new("TextButton", FlyFrame)
+FlyPlus.Size = UDim2.new(0, 32, 0, 30)
+FlyPlus.Position = UDim2.new(0.8, 0, 0.1, 0)
+FlyPlus.Text = "+"
+FlyPlus.TextColor3 = Color3.fromRGB(255, 255, 255)
+FlyPlus.BackgroundColor3 = Color3.fromRGB(60, 60, 65)
+FlyPlus.Font = Enum.Font.SourceSansBold
+FlyPlus.TextSize = 18
+Instance.new("UICorner", FlyPlus).CornerRadius = UDim.new(0, 4)
+
+
+local UpBtn = Instance.new("TextButton", FlyFrame)
+UpBtn.Size = UDim2.new(0.42, 0, 0, 30)
+UpBtn.Position = UDim2.new(0.05, 0, 0.35, 0)
+UpBtn.Text = "▲"
+UpBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+UpBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 55)
+UpBtn.Font = Enum.Font.SourceSansBold
+UpBtn.TextSize = 14
+Instance.new("UICorner", UpBtn).CornerRadius = UDim.new(0, 4)
+
+
+local DownBtn = Instance.new("TextButton", FlyFrame)
+DownBtn.Size = UDim2.new(0.42, 0, 0, 30)
+DownBtn.Position = UDim2.new(0.53, 0, 0.35, 0)
+DownBtn.Text = "▼"
+DownBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+DownBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 55)
+DownBtn.Font = Enum.Font.SourceSansBold
+DownBtn.TextSize = 14
+Instance.new("UICorner", DownBtn).CornerRadius = UDim.new(0, 4)
+
+
+local FlyToggle = Instance.new("TextButton", FlyFrame)
+FlyToggle.Size = UDim2.new(0.9, 0, 0, 35)
+FlyToggle.Position = UDim2.new(0.05, 0, 0.62, 0)
+FlyToggle.Text = "[ FLY: OFF ]"
+FlyToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+FlyToggle.BackgroundColor3 = Color3.fromRGB(220, 50, 50)
+FlyToggle.Font = Enum.Font.SourceSansBold
+FlyToggle.TextSize = 16
+Instance.new("UICorner", FlyToggle).CornerRadius = UDim.new(0, 6)
+
+
+local SpeedFrame = Instance.new("Frame", ContentContainer)
+SpeedFrame.Size = UDim2.new(1, 0, 1, 0)
+SpeedFrame.BackgroundTransparency = 1
+SpeedFrame.Visible = false
+
+local RunSpeedLabel = Instance.new("TextLabel", SpeedFrame)
+RunSpeedLabel.Size = UDim2.new(0, 150, 0, 30)
+RunSpeedLabel.Position = UDim2.new(0.05, 0, 0.2, 0)
+RunSpeedLabel.Text = "Run Speed : " .. RunSpeedVal
+RunSpeedLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+RunSpeedLabel.Font = Enum.Font.SourceSansBold
+RunSpeedLabel.TextSize = 16
+RunSpeedLabel.TextXAlignment = Enum.TextXAlignment.Left
+RunSpeedLabel.BackgroundTransparency = 1
+
+local SpeedMinus = Instance.new("TextButton", SpeedFrame)
+SpeedMinus.Size = UDim2.new(0, 32, 0, 30)
+SpeedMinus.Position = UDim2.new(0.65, 0, 0.2, 0)
+SpeedMinus.Text = "−"
+SpeedMinus.TextColor3 = Color3.fromRGB(255, 255, 255)
+SpeedMinus.BackgroundColor3 = Color3.fromRGB(60, 60, 65)
+SpeedMinus.Font = Enum.Font.SourceSansBold
+SpeedMinus.TextSize = 18
+Instance.new("UICorner", SpeedMinus).CornerRadius = UDim.new(0, 4)
+
+local SpeedPlus = Instance.new("TextButton", SpeedFrame)
+SpeedPlus.Size = UDim2.new(0, 32, 0, 30)
+SpeedPlus.Position = UDim2.new(0.8, 0, 0.2, 0)
+SpeedPlus.Text = "+"
+SpeedPlus.TextColor3 = Color3.fromRGB(255, 255, 255)
+SpeedPlus.BackgroundColor3 = Color3.fromRGB(60, 60, 65)
+SpeedPlus.Font = Enum.Font.SourceSansBold
+SpeedPlus.TextSize = 18
+Instance.new("UICorner", SpeedPlus).CornerRadius = UDim.new(0, 4)
+
+local SpeedToggle = Instance.new("TextButton", SpeedFrame)
+SpeedToggle.Size = UDim2.new(0.9, 0, 0, 35)
+SpeedToggle.Position = UDim2.new(0.05, 0, 0.55, 0)
+SpeedToggle.Text = "[ RUN: OFF ]"
+SpeedToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+SpeedToggle.BackgroundColor3 = Color3.fromRGB(220, 50, 50)
+SpeedToggle.Font = Enum.Font.SourceSansBold
+SpeedToggle.TextSize = 16
+Instance.new("UICorner", SpeedToggle).CornerRadius = UDim.new(0, 6)
+
+
+local InfoFrame = Instance.new("Frame", ContentContainer)
+InfoFrame.Size = UDim2.new(1, 0, 1, 0)
+InfoFrame.BackgroundTransparency = 1
+InfoFrame.Visible = false
+
+local InfoText = Instance.new("TextLabel", InfoFrame)
+InfoText.Size = UDim2.new(0.9, 0, 0.8, 0)
+InfoText.Position = UDim2.new(0.05, 0, 0.1, 0)
+InfoText.Text = "Script created by Qng96\nGithub.com/Qng96"
+InfoText.TextColor3 = Color3.fromRGB(200, 200, 200)
+InfoText.Font = Enum.Font.SourceSansBold
+InfoText.TextSize = 18
+InfoText.BackgroundTransparency = 1
+
+
+local function setTabActive(btn, frame)
+	flyTabBtn.TextColor3 = Color3.fromRGB(160, 160, 160)
+	speedTabBtn.TextColor3 = Color3.fromRGB(160, 160, 160)
+	infoTabBtn.TextColor3 = Color3.fromRGB(160, 160, 160)
+
+	FlyFrame.Visible = false
+	SpeedFrame.Visible = false
+	InfoFrame.Visible = false
+
+	btn.TextColor3 = Color3.fromRGB(85, 170, 255)
+	frame.Visible = true
+end
+
+flyTabBtn.MouseButton1Click:Connect(function() setTabActive(flyTabBtn, FlyFrame) end)
+speedTabBtn.MouseButton1Click:Connect(function() setTabActive(speedTabBtn, SpeedFrame) end)
+infoTabBtn.MouseButton1Click:Connect(function() setTabActive(infoTabBtn, InfoFrame) end)
+
+setTabActive(flyTabBtn, FlyFrame)
+
+
+FlyMinus.MouseButton1Click:Connect(function()
+	if FlySpeedVal > 1 then
+		FlySpeedVal -= 1
+		FlySpeedLabel.Text = "Speed Fly : " .. FlySpeedVal
+	end
+end)
+
+FlyPlus.MouseButton1Click:Connect(function()
+	FlySpeedVal += 1
+	FlySpeedLabel.Text = "Speed Fly : " .. FlySpeedVal
+end)
+
+
+UpBtn.MouseButton1Down:Connect(function() isGoingUp = true end)
+UpBtn.MouseButton1Up:Connect(function() isGoingUp = false end)
+
+DownBtn.MouseButton1Down:Connect(function() isGoingDown = true end)
+DownBtn.MouseButton1Up:Connect(function() isGoingDown = false end)
+
+
+FlyToggle.MouseButton1Click:Connect(function()
+	FlyActive = not FlyActive
+	if FlyActive then
+		FlyToggle.Text = "[ FLY: ON ]"
+		FlyToggle.BackgroundColor3 = Color3.fromRGB(50, 200, 80)
+		startFly()
+	else
+		FlyToggle.Text = "[ FLY: OFF ]"
+		FlyToggle.BackgroundColor3 = Color3.fromRGB(220, 50, 50)
+		stopFly()
+	end
+end)
+
+
+SpeedMinus.MouseButton1Click:Connect(function()
+	if RunSpeedVal > 1 then
+		RunSpeedVal -= 1
+		RunSpeedLabel.Text = "Run Speed : " .. RunSpeedVal
+		if SpeedActive and LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
+			LocalPlayer.Character:FindFirstChildOfClass("Humanoid").WalkSpeed = 16 * RunSpeedVal
+		end
+	end
+end)
+
+SpeedPlus.MouseButton1Click:Connect(function()
+	RunSpeedVal += 1
+	RunSpeedLabel.Text = "Run Speed : " .. RunSpeedVal
+	if SpeedActive and LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
+		LocalPlayer.Character:FindFirstChildOfClass("Humanoid").WalkSpeed = 16 * RunSpeedVal
+	end
+end)
+
+
+SpeedToggle.MouseButton1Click:Connect(function()
+	SpeedActive = not SpeedActive
+	if SpeedActive then
+		SpeedToggle.Text = "[ RUN: ON ]"
+		SpeedToggle.BackgroundColor3 = Color3.fromRGB(50, 200, 80)
+		if LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
+			LocalPlayer.Character:FindFirstChildOfClass("Humanoid").WalkSpeed = 16 * RunSpeedVal
+		end
+	else
+		SpeedToggle.Text = "[ RUN: OFF ]"
+		SpeedToggle.BackgroundColor3 = Color3.fromRGB(220, 50, 50)
+		if LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
+			LocalPlayer.Character:FindFirstChildOfClass("Humanoid").WalkSpeed = 16
+		end
+	end
+end)
