@@ -168,9 +168,9 @@ local function createTabButton(name, icon, order)
 end
 
 local flyTabBtn = createTabButton("FLY", "✈", 1)
-local speedTabBtn = createTabButton("TỐC ĐỘ", "⚡", 2)
-local jumpTabBtn = createTabButton("NHẢY CAO", "↑", 3)
-local infoTabBtn = createTabButton("INFO", "ⓘ", 4)
+local speedTabBtn = createTabButton("RUN", "⚡", 2)
+local jumpTabBtn = createTabButton("JUMP", "🧞", 3)
+local infoTabBtn = createTabButton("INFO", "ℹ️", 4)
 
 local ContentContainer = Instance.new("Frame", MainFrame)
 ContentContainer.Size = UDim2.new(1, -24, 1, -62)
@@ -185,7 +185,7 @@ FlyFrame.BackgroundTransparency = 1
 local FlySpeedLabel = Instance.new("TextLabel", FlyFrame)
 FlySpeedLabel.Size = UDim2.new(0, 150, 0, 30)
 FlySpeedLabel.Position = UDim2.new(0.06, 0, 0.12, 0)
-FlySpeedLabel.Text = "Flight speed : " .. FlySpeedVal
+FlySpeedLabel.Text = "Speed Fly : " .. FlySpeedVal
 FlySpeedLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 FlySpeedLabel.Font = Enum.Font.SourceSansBold
 FlySpeedLabel.TextSize = 16
