@@ -20,6 +20,10 @@ local isGoingDown = false
 local RunSpeedVal = 7
 local SpeedActive = false
 
+local HighJumpActive = false
+local HighJumpPower = 100
+
+
 
 local function startFly()
 	local char = LocalPlayer.Character
@@ -96,9 +100,9 @@ ScreenGui.Parent = PlayerGui
 
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
-MainFrame.Size = UDim2.new(0, 310, 0, 210)
-MainFrame.Position = UDim2.new(0.5, -155, 0.4, -105)
-MainFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 40)
+MainFrame.Size = UDim2.new(0, 380, 0, 245)
+MainFrame.Position = UDim2.new(0.5, -190, 0.4, -122)
+MainFrame.BackgroundColor3 = Color3.fromRGB(24, 25, 31)
 MainFrame.BorderSizePixel = 0
 MainFrame.Active = true
 MainFrame.Draggable = true
@@ -108,41 +112,69 @@ Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 8)
 
 local UIStroke = Instance.new("UIStroke", MainFrame)
 UIStroke.Color = Color3.fromRGB(60, 60, 65)
-UIStroke.Thickness = 2
+UIStroke.Thickness = 1
 
 
 local TabHeader = Instance.new("Frame", MainFrame)
-TabHeader.Size = UDim2.new(1, 0, 0, 35)
-TabHeader.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+TabHeader.Size = UDim2.new(1, 0, 0, 44)
+TabHeader.BackgroundColor3 = Color3.fromRGB(18, 19, 24)
 TabHeader.BorderSizePixel = 0
 
 Instance.new("UICorner", TabHeader).CornerRadius = UDim.new(0, 8)
 
 local UIListLayoutHeader = Instance.new("UIListLayout", TabHeader)
 UIListLayoutHeader.FillDirection = Enum.FillDirection.Horizontal
+UIListLayoutHeader.HorizontalAlignment = Enum.HorizontalAlignment.Center
+UIListLayoutHeader.VerticalAlignment = Enum.VerticalAlignment.Center
 UIListLayoutHeader.SortOrder = Enum.SortOrder.LayoutOrder
+UIListLayoutHeader.Padding = UDim.new(0, 2)
 
-local function createTabButton(name, order)
+local function createTabButton(name, icon, order)
 	local btn = Instance.new("TextButton")
 	btn.Name = name .. "Tab"
-	btn.Size = UDim2.new(0.333, 0, 1, 0)
-	btn.BackgroundTransparency = 1
-	btn.Text = name
-	btn.TextColor3 = Color3.fromRGB(160, 160, 160)
-	btn.Font = Enum.Font.SourceSansBold
-	btn.TextSize = 16
+	btn.Size = UDim2.new(0.25, -4, 1, -8)
+	btn.BackgroundColor3 = Color3.fromRGB(25, 26, 32)
+	btn.BackgroundTransparency = 0
+	btn.Text = icon .. "  " .. name
+	btn.TextColor3 = Color3.fromRGB(145, 145, 155)
+	btn.Font = Enum.Font.GothamBold
+	btn.TextSize = 11
+	btn.AutoButtonColor = false
 	btn.LayoutOrder = order
 	btn.Parent = TabHeader
+
+	local corner = Instance.new("UICorner", btn)
+	corner.CornerRadius = UDim.new(0, 7)
+
+	local stroke = Instance.new("UIStroke", btn)
+	stroke.Color = Color3.fromRGB(42, 44, 52)
+	stroke.Thickness = 1
+	stroke.Transparency = 0.35
+
+	local activeBar = Instance.new("Frame")
+	activeBar.Name = "ActiveBar"
+	activeBar.Size = UDim2.new(0.42, 0, 0, 2)
+	activeBar.Position = UDim2.new(0.29, 0, 1, -3)
+	activeBar.BackgroundColor3 = Color3.fromRGB(95, 185, 255)
+	activeBar.BorderSizePixel = 0
+	activeBar.Visible = false
+	activeBar.ZIndex = 4
+	activeBar.Parent = btn
+
+	local barCorner = Instance.new("UICorner", activeBar)
+	barCorner.CornerRadius = UDim.new(1, 0)
+
 	return btn
 end
 
-local flyTabBtn = createTabButton("FLY", 1)
-local speedTabBtn = createTabButton("SPEED", 2)
-local infoTabBtn = createTabButton("INFO", 3)
+local flyTabBtn = createTabButton("FLY", "✈", 1)
+local speedTabBtn = createTabButton("TỐC ĐỘ", "⚡", 2)
+local jumpTabBtn = createTabButton("NHẢY CAO", "↑", 3)
+local infoTabBtn = createTabButton("INFO", "ⓘ", 4)
 
 local ContentContainer = Instance.new("Frame", MainFrame)
-ContentContainer.Size = UDim2.new(1, 0, 1, -35)
-ContentContainer.Position = UDim2.new(0, 0, 0, 35)
+ContentContainer.Size = UDim2.new(1, -24, 1, -62)
+ContentContainer.Position = UDim2.new(0, 12, 0, 56)
 ContentContainer.BackgroundTransparency = 1
 
 
@@ -152,7 +184,7 @@ FlyFrame.BackgroundTransparency = 1
 
 local FlySpeedLabel = Instance.new("TextLabel", FlyFrame)
 FlySpeedLabel.Size = UDim2.new(0, 150, 0, 30)
-FlySpeedLabel.Position = UDim2.new(0.05, 0, 0.1, 0)
+FlySpeedLabel.Position = UDim2.new(0.06, 0, 0.12, 0)
 FlySpeedLabel.Text = "Flight speed : " .. FlySpeedVal
 FlySpeedLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 FlySpeedLabel.Font = Enum.Font.SourceSansBold
@@ -163,10 +195,11 @@ FlySpeedLabel.BackgroundTransparency = 1
 
 local FlyMinus = Instance.new("TextButton", FlyFrame)
 FlyMinus.Size = UDim2.new(0, 32, 0, 30)
-FlyMinus.Position = UDim2.new(0.65, 0, 0.1, 0)
+FlyMinus.Position = UDim2.new(0.68, 0, 0.12, 0)
 FlyMinus.Text = "−"
 FlyMinus.TextColor3 = Color3.fromRGB(255, 255, 255)
-FlyMinus.BackgroundColor3 = Color3.fromRGB(60, 60, 65)
+FlyMinus.BackgroundColor3 = Color3.fromRGB(43, 45, 53)
+FlyMinus.AutoButtonColor = false
 FlyMinus.Font = Enum.Font.SourceSansBold
 FlyMinus.TextSize = 18
 Instance.new("UICorner", FlyMinus).CornerRadius = UDim.new(0, 4)
@@ -174,40 +207,43 @@ Instance.new("UICorner", FlyMinus).CornerRadius = UDim.new(0, 4)
 
 local FlyPlus = Instance.new("TextButton", FlyFrame)
 FlyPlus.Size = UDim2.new(0, 32, 0, 30)
-FlyPlus.Position = UDim2.new(0.8, 0, 0.1, 0)
+FlyPlus.Position = UDim2.new(0.84, 0, 0.12, 0)
 FlyPlus.Text = "+"
 FlyPlus.TextColor3 = Color3.fromRGB(255, 255, 255)
-FlyPlus.BackgroundColor3 = Color3.fromRGB(60, 60, 65)
+FlyPlus.BackgroundColor3 = Color3.fromRGB(43, 45, 53)
+FlyPlus.AutoButtonColor = false
 FlyPlus.Font = Enum.Font.SourceSansBold
 FlyPlus.TextSize = 18
 Instance.new("UICorner", FlyPlus).CornerRadius = UDim.new(0, 4)
 
 
 local UpBtn = Instance.new("TextButton", FlyFrame)
-UpBtn.Size = UDim2.new(0.42, 0, 0, 30)
-UpBtn.Position = UDim2.new(0.05, 0, 0.35, 0)
+UpBtn.Size = UDim2.new(0.43, 0, 0, 34)
+UpBtn.Position = UDim2.new(0.06, 0, 0.38, 0)
 UpBtn.Text = "▲"
 UpBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-UpBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 55)
+UpBtn.BackgroundColor3 = Color3.fromRGB(43, 45, 53)
+UpBtn.AutoButtonColor = false
 UpBtn.Font = Enum.Font.SourceSansBold
 UpBtn.TextSize = 14
 Instance.new("UICorner", UpBtn).CornerRadius = UDim.new(0, 4)
 
 
 local DownBtn = Instance.new("TextButton", FlyFrame)
-DownBtn.Size = UDim2.new(0.42, 0, 0, 30)
-DownBtn.Position = UDim2.new(0.53, 0, 0.35, 0)
+DownBtn.Size = UDim2.new(0.43, 0, 0, 34)
+DownBtn.Position = UDim2.new(0.51, 0, 0.38, 0)
 DownBtn.Text = "▼"
 DownBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-DownBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 55)
+DownBtn.BackgroundColor3 = Color3.fromRGB(43, 45, 53)
+DownBtn.AutoButtonColor = false
 DownBtn.Font = Enum.Font.SourceSansBold
 DownBtn.TextSize = 14
 Instance.new("UICorner", DownBtn).CornerRadius = UDim.new(0, 4)
 
 
 local FlyToggle = Instance.new("TextButton", FlyFrame)
-FlyToggle.Size = UDim2.new(0.9, 0, 0, 35)
-FlyToggle.Position = UDim2.new(0.05, 0, 0.62, 0)
+FlyToggle.Size = UDim2.new(0.88, 0, 0, 38)
+FlyToggle.Position = UDim2.new(0.06, 0, 0.67, 0)
 FlyToggle.Text = "[ FLY: OFF ]"
 FlyToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
 FlyToggle.BackgroundColor3 = Color3.fromRGB(220, 50, 50)
@@ -232,21 +268,23 @@ RunSpeedLabel.TextXAlignment = Enum.TextXAlignment.Left
 RunSpeedLabel.BackgroundTransparency = 1
 
 local SpeedMinus = Instance.new("TextButton", SpeedFrame)
-SpeedMinus.Size = UDim2.new(0, 32, 0, 30)
+SpeedMinus.Size = UDim2.new(0, 34, 0, 32)
 SpeedMinus.Position = UDim2.new(0.65, 0, 0.2, 0)
 SpeedMinus.Text = "−"
 SpeedMinus.TextColor3 = Color3.fromRGB(255, 255, 255)
-SpeedMinus.BackgroundColor3 = Color3.fromRGB(60, 60, 65)
+SpeedMinus.BackgroundColor3 = Color3.fromRGB(43, 45, 53)
+SpeedMinus.AutoButtonColor = false
 SpeedMinus.Font = Enum.Font.SourceSansBold
 SpeedMinus.TextSize = 18
 Instance.new("UICorner", SpeedMinus).CornerRadius = UDim.new(0, 4)
 
 local SpeedPlus = Instance.new("TextButton", SpeedFrame)
-SpeedPlus.Size = UDim2.new(0, 32, 0, 30)
+SpeedPlus.Size = UDim2.new(0, 34, 0, 32)
 SpeedPlus.Position = UDim2.new(0.8, 0, 0.2, 0)
 SpeedPlus.Text = "+"
 SpeedPlus.TextColor3 = Color3.fromRGB(255, 255, 255)
-SpeedPlus.BackgroundColor3 = Color3.fromRGB(60, 60, 65)
+SpeedPlus.BackgroundColor3 = Color3.fromRGB(43, 45, 53)
+SpeedPlus.AutoButtonColor = false
 SpeedPlus.Font = Enum.Font.SourceSansBold
 SpeedPlus.TextSize = 18
 Instance.new("UICorner", SpeedPlus).CornerRadius = UDim.new(0, 4)
@@ -262,10 +300,91 @@ SpeedToggle.TextSize = 16
 Instance.new("UICorner", SpeedToggle).CornerRadius = UDim.new(0, 6)
 
 
+local JumpFrame = Instance.new("Frame", ContentContainer)
+JumpFrame.Size = UDim2.new(1, 0, 1, 0)
+JumpFrame.BackgroundTransparency = 1
+JumpFrame.Visible = false
+
+local JumpPowerLabel = Instance.new("TextLabel", JumpFrame)
+JumpPowerLabel.Size = UDim2.new(0, 150, 0, 30)
+JumpPowerLabel.Position = UDim2.new(0.05, 0, 0.18, 0)
+JumpPowerLabel.Text = "Jump Power : " .. HighJumpPower
+JumpPowerLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+JumpPowerLabel.Font = Enum.Font.SourceSansBold
+JumpPowerLabel.TextSize = 16
+JumpPowerLabel.TextXAlignment = Enum.TextXAlignment.Left
+JumpPowerLabel.BackgroundTransparency = 1
+
+local JumpMinus = Instance.new("TextButton", JumpFrame)
+JumpMinus.Size = UDim2.new(0, 34, 0, 32)
+JumpMinus.Position = UDim2.new(0.65, 0, 0.18, 0)
+JumpMinus.Text = "−"
+JumpMinus.TextColor3 = Color3.fromRGB(255, 255, 255)
+JumpMinus.BackgroundColor3 = Color3.fromRGB(43, 45, 53)
+JumpMinus.AutoButtonColor = false
+JumpMinus.Font = Enum.Font.SourceSansBold
+JumpMinus.TextSize = 18
+Instance.new("UICorner", JumpMinus).CornerRadius = UDim.new(0, 4)
+
+local JumpPlus = Instance.new("TextButton", JumpFrame)
+JumpPlus.Size = UDim2.new(0, 34, 0, 32)
+JumpPlus.Position = UDim2.new(0.8, 0, 0.18, 0)
+JumpPlus.Text = "+"
+JumpPlus.TextColor3 = Color3.fromRGB(255, 255, 255)
+JumpPlus.BackgroundColor3 = Color3.fromRGB(43, 45, 53)
+JumpPlus.AutoButtonColor = false
+JumpPlus.Font = Enum.Font.SourceSansBold
+JumpPlus.TextSize = 18
+Instance.new("UICorner", JumpPlus).CornerRadius = UDim.new(0, 4)
+
+local JumpToggle = Instance.new("TextButton", JumpFrame)
+JumpToggle.Size = UDim2.new(0.9, 0, 0, 35)
+JumpToggle.Position = UDim2.new(0.05, 0, 0.55, 0)
+JumpToggle.Text = "[ NHẢY CAO: OFF ]"
+JumpToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+JumpToggle.BackgroundColor3 = Color3.fromRGB(220, 50, 50)
+JumpToggle.Font = Enum.Font.SourceSansBold
+JumpToggle.TextSize = 16
+Instance.new("UICorner", JumpToggle).CornerRadius = UDim.new(0, 6)
+
+
 local InfoFrame = Instance.new("Frame", ContentContainer)
 InfoFrame.Size = UDim2.new(1, 0, 1, 0)
 InfoFrame.BackgroundTransparency = 1
 InfoFrame.Visible = false
+
+local function addCard(frame)
+	local card = Instance.new("Frame")
+	card.Name = "Card"
+	card.Size = UDim2.new(1, 0, 1, 0)
+	card.BackgroundColor3 = Color3.fromRGB(30, 31, 38)
+	card.BorderSizePixel = 0
+	card.Parent = frame
+	Instance.new("UICorner", card).CornerRadius = UDim.new(0, 10)
+
+	local stroke = Instance.new("UIStroke", card)
+	stroke.Color = Color3.fromRGB(52, 54, 63)
+	stroke.Thickness = 1
+end
+
+addCard(FlyFrame)
+addCard(SpeedFrame)
+addCard(JumpFrame)
+addCard(InfoFrame)
+
+-- Đưa Card xuống dưới các control để không che nội dung tab.
+FlyFrame.Card.ZIndex = 0
+SpeedFrame.Card.ZIndex = 0
+JumpFrame.Card.ZIndex = 0
+InfoFrame.Card.ZIndex = 0
+
+local function raiseChildren(frame)
+	for _, child in ipairs(frame:GetChildren()) do
+		if child:IsA("GuiObject") and child.Name ~= "Card" then
+			child.ZIndex = 2
+		end
+	end
+end
 
 local InfoText = Instance.new("TextLabel", InfoFrame)
 InfoText.Size = UDim2.new(0.9, 0, 0.8, 0)
@@ -277,22 +396,35 @@ InfoText.TextSize = 18
 InfoText.BackgroundTransparency = 1
 
 
+raiseChildren(FlyFrame)
+raiseChildren(SpeedFrame)
+raiseChildren(JumpFrame)
+raiseChildren(InfoFrame)
+
 local function setTabActive(btn, frame)
-	flyTabBtn.TextColor3 = Color3.fromRGB(160, 160, 160)
-	speedTabBtn.TextColor3 = Color3.fromRGB(160, 160, 160)
-	infoTabBtn.TextColor3 = Color3.fromRGB(160, 160, 160)
+	local tabButtons = {flyTabBtn, speedTabBtn, jumpTabBtn, infoTabBtn}
+
+	for _, tab in ipairs(tabButtons) do
+		tab.TextColor3 = Color3.fromRGB(145, 145, 155)
+		tab.BackgroundColor3 = Color3.fromRGB(25, 26, 32)
+		tab.ActiveBar.Visible = false
+	end
 
 	FlyFrame.Visible = false
 	SpeedFrame.Visible = false
 	InfoFrame.Visible = false
+	JumpFrame.Visible = false
 
-	btn.TextColor3 = Color3.fromRGB(85, 170, 255)
+	btn.TextColor3 = Color3.fromRGB(95, 185, 255)
+	btn.BackgroundColor3 = Color3.fromRGB(34, 43, 55)
+	btn.ActiveBar.Visible = true
 	frame.Visible = true
 end
 
 flyTabBtn.MouseButton1Click:Connect(function() setTabActive(flyTabBtn, FlyFrame) end)
 speedTabBtn.MouseButton1Click:Connect(function() setTabActive(speedTabBtn, SpeedFrame) end)
 infoTabBtn.MouseButton1Click:Connect(function() setTabActive(infoTabBtn, InfoFrame) end)
+jumpTabBtn.MouseButton1Click:Connect(function() setTabActive(jumpTabBtn, JumpFrame) end)
 
 setTabActive(flyTabBtn, FlyFrame)
 
@@ -331,6 +463,41 @@ FlyToggle.MouseButton1Click:Connect(function()
 end)
 
 
+JumpMinus.MouseButton1Click:Connect(function()
+	if HighJumpPower > 20 then
+		HighJumpPower -= 10
+		JumpPowerLabel.Text = "Jump Power : " .. HighJumpPower
+	end
+end)
+
+JumpPlus.MouseButton1Click:Connect(function()
+	HighJumpPower += 10
+	JumpPowerLabel.Text = "Jump Power : " .. HighJumpPower
+end)
+
+JumpToggle.MouseButton1Click:Connect(function()
+	HighJumpActive = not HighJumpActive
+
+	local humanoid = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+	if humanoid then
+		if HighJumpActive then
+			humanoid.UseJumpPower = true
+			humanoid.JumpPower = HighJumpPower
+		else
+			humanoid.JumpPower = 50
+		end
+	end
+
+	if HighJumpActive then
+		JumpToggle.Text = "[ NHẢY CAO: ON ]"
+		JumpToggle.BackgroundColor3 = Color3.fromRGB(50, 200, 80)
+	else
+		JumpToggle.Text = "[ NHẢY CAO: OFF ]"
+		JumpToggle.BackgroundColor3 = Color3.fromRGB(220, 50, 50)
+	end
+end)
+
+
 SpeedMinus.MouseButton1Click:Connect(function()
 	if RunSpeedVal > 1 then
 		RunSpeedVal -= 1
@@ -364,5 +531,13 @@ SpeedToggle.MouseButton1Click:Connect(function()
 		if LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
 			LocalPlayer.Character:FindFirstChildOfClass("Humanoid").WalkSpeed = 16
 		end
+	end
+end)
+
+LocalPlayer.CharacterAdded:Connect(function(char)
+	local humanoid = char:WaitForChild("Humanoid", 5)
+	if humanoid and HighJumpActive then
+		humanoid.UseJumpPower = true
+		humanoid.JumpPower = HighJumpPower
 	end
 end)
