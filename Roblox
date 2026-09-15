@@ -340,7 +340,7 @@ Instance.new("UICorner", JumpPlus).CornerRadius = UDim.new(0, 4)
 local JumpToggle = Instance.new("TextButton", JumpFrame)
 JumpToggle.Size = UDim2.new(0.9, 0, 0, 35)
 JumpToggle.Position = UDim2.new(0.05, 0, 0.55, 0)
-JumpToggle.Text = "[ NHẢY CAO: OFF ]"
+JumpToggle.Text = "[ HIGH JUMP: OFF ]"
 JumpToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
 JumpToggle.BackgroundColor3 = Color3.fromRGB(220, 50, 50)
 JumpToggle.Font = Enum.Font.SourceSansBold
@@ -389,7 +389,7 @@ end
 local InfoText = Instance.new("TextLabel", InfoFrame)
 InfoText.Size = UDim2.new(0.9, 0, 0.8, 0)
 InfoText.Position = UDim2.new(0.05, 0, 0.1, 0)
-InfoText.Text = "Script created by Qng96\nGithub.com/Qng96"
+InfoText.Text = "Script created by Qng96"
 InfoText.TextColor3 = Color3.fromRGB(200, 200, 200)
 InfoText.Font = Enum.Font.SourceSansBold
 InfoText.TextSize = 18
@@ -489,10 +489,10 @@ JumpToggle.MouseButton1Click:Connect(function()
 	end
 
 	if HighJumpActive then
-		JumpToggle.Text = "[ NHẢY CAO: ON ]"
+		JumpToggle.Text = "[ HIGH JUMP: ON ]"
 		JumpToggle.BackgroundColor3 = Color3.fromRGB(50, 200, 80)
 	else
-		JumpToggle.Text = "[ NHẢY CAO: OFF ]"
+		JumpToggle.Text = "[ HIGH JUMP: OFF ]"
 		JumpToggle.BackgroundColor3 = Color3.fromRGB(220, 50, 50)
 	end
 end)
